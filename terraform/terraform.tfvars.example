@@ -1,0 +1,20 @@
+# Copy this to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to git (it's in .gitignore)
+
+aws_region   = "eu-west-1"
+environment  = "dev"
+project_name = "securepath"
+
+# Get with: aws sts get-caller-identity --query Account --output text
+account_id = "389708013299"
+
+# Your GitHub repo in owner/repo format
+github_repo = "CorpodeanAndrei/securepath"
+
+# Optional: Slack webhook for notifications
+# slack_webhook_url = "https://hooks.slack.com/..."
+
+findings_retention_days      = 90
+chaos_schedule               = "cron(0 2 ? * SAT *)"
+drift_check_interval_minutes = 30
+csps_block_threshold         = 70

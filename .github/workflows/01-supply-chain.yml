@@ -1,0 +1,69 @@
+name: "Layer 1 — Supply Chain Security"
+
+on:
+  push:
+    branches: [main]
+    paths: ["Dockerfile", "requirements*.txt", "package*.json", "go.mod"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  security-events: write
+
+jobs:
+  sbom-scan:
+    name: "SBOM Generation & CVE Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/securepath-github-actions
+          aws-region: eu-west-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t securepath-app:${{ github.sha }} .
+
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: securepath-app:${{ github.sha }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Scan for CVEs with Grype
+        id: grype
+        uses: anchore/scan-action@v3
+        with:
+          sbom: sbom.spdx.json
+          fail-build: true
+          severity-cutoff: critical
+          output-format: sarif
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.grype.outputs.sarif }}
+
+      - name: Sign image with Cosign
+        if: success()
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v2.2.4
+
+      - name: Push signed image to ECR
+        if: success()
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/securepath-app"
+          docker tag securepath-app:${{ github.sha }} $ECR_REPO:${{ github.sha }}
+          docker push $ECR_REPO:${{ github.sha }}
+          echo "Pushed $ECR_REPO:${{ github.sha }}"

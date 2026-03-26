@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyS3PublicAccess",
+      "Effect": "Deny",
+      "Action": [
+        "s3:PutBucketPublicAccessBlock",
+        "s3:DeletePublicAccessBlock"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "s3:PublicAccessBlockConfiguration/BlockPublicAcls": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRegionsOutsideApproved",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:*", "sts:*", "cloudfront:*", "route53:*",
+        "waf:*", "budgets:*", "support:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["us-east-1", "eu-west-1"]
+        }
+      }
+    },
+    {
+      "Sid": "DenyRootAccountUsage",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "aws:PrincipalArn": "arn:aws:iam::*:root"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SecurePath Finding",
+  "description": "Unified schema for all security findings across 5 layers",
+  "type": "object",
+  "required": [
+    "finding_id", "detected_at", "layer", "severity",
+    "resource", "cwe_id", "pipeline_stage", "environment", "score"
+  ],
+  "properties": {
+    "finding_id":      { "type": "string", "format": "uuid" },
+    "detected_at":     { "type": "string", "format": "date-time" },
+    "layer": {
+      "type": "string",
+      "enum": [
+        "supply_chain",
+        "iam_zero_trust",
+        "drift_detector",
+        "policy_engine",
+        "chaos_prober"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]
+    },
+    "resource":        { "type": "string", "description": "AWS resource identifier" },
+    "cwe_id":          { "type": "string", "pattern": "^CWE-[0-9]+$" },
+    "pipeline_stage": {
+      "type": "string",
+      "enum": ["pre-commit", "pre-deploy", "post-push", "runtime"]
+    },
+    "environment":     { "type": "string" },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Layer security score: 100=clean, 0=critical failure"
+    },
+    "remediation":     { "type": "string" },
+    "auto_remediated": { "type": "boolean" },
+    "expires_at":      { "type": "integer", "description": "Unix epoch for TTL" }
+  }
+}
