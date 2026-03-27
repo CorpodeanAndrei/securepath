@@ -1,0 +1,80 @@
+﻿{
+  "dashboard": {
+    "title": "SecurePath — Cloud Security Posture",
+    "tags": ["securepath", "aws", "security"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1, "type": "stat", "title": "CSPS — Cloud Security Posture Score",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
+        "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": 0}, {"color": "orange", "value": 40}, {"color": "yellow", "value": 60}, {"color": "green", "value": 80}]}, "unit": "none", "min": 0, "max": 100}},
+        "targets": [{"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "CSPS", "dimensions": {"Project": "securepath"}, "statistics": ["Average"], "period": "300", "refId": "A"}]
+      },
+      {
+        "id": 2, "type": "stat", "title": "CRITICAL Findings",
+        "gridPos": {"x": 6, "y": 0, "w": 5, "h": 4},
+        "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"},
+        "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": 0}, {"color": "red", "value": 1}]}, "unit": "none"}},
+        "targets": [{"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "FindingsCritical", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "86400", "refId": "A"}]
+      },
+      {
+        "id": 3, "type": "stat", "title": "HIGH Findings",
+        "gridPos": {"x": 11, "y": 0, "w": 5, "h": 4},
+        "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"},
+        "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": 0}, {"color": "orange", "value": 1}]}, "unit": "none"}},
+        "targets": [{"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "FindingsHigh", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "86400", "refId": "A"}]
+      },
+      {
+        "id": 4, "type": "stat", "title": "Auto-Remediated",
+        "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+        "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"},
+        "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": 0}]}, "unit": "none"}},
+        "targets": [{"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "DriftRemediated", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "86400", "refId": "A"}]
+      },
+      {
+        "id": 5, "type": "bargauge", "title": "Security Score per Layer",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "horizontal", "displayMode": "gradient"},
+        "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": 0}, {"color": "orange", "value": 40}, {"color": "yellow", "value": 60}, {"color": "green", "value": 80}]}, "unit": "none", "min": 0, "max": 100}},
+        "targets": [
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "LayerScore", "dimensions": {"Project": "securepath", "Layer": "supply_chain"}, "statistics": ["Average"], "period": "300", "refId": "A", "alias": "L1 Supply Chain"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "LayerScore", "dimensions": {"Project": "securepath", "Layer": "iam_zero_trust"}, "statistics": ["Average"], "period": "300", "refId": "B", "alias": "L2 Zero-Trust IAM"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "LayerScore", "dimensions": {"Project": "securepath", "Layer": "drift_detector"}, "statistics": ["Average"], "period": "300", "refId": "C", "alias": "L3 Drift Detector"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "LayerScore", "dimensions": {"Project": "securepath", "Layer": "policy_engine"}, "statistics": ["Average"], "period": "300", "refId": "D", "alias": "L4 Policy Engine"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "LayerScore", "dimensions": {"Project": "securepath", "Layer": "chaos_prober"}, "statistics": ["Average"], "period": "300", "refId": "E", "alias": "L5 Chaos Prober"}
+        ]
+      },
+      {
+        "id": 6, "type": "timeseries", "title": "Findings by Severity — Timeline",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "options": {"tooltip": {"mode": "multi"}},
+        "fieldConfig": {"defaults": {"unit": "none", "custom": {"lineWidth": 2, "fillOpacity": 10}}},
+        "targets": [
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "FindingsCritical", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "3600", "refId": "A", "alias": "CRITICAL"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "FindingsHigh", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "3600", "refId": "B", "alias": "HIGH"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "FindingsMedium", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "3600", "refId": "C", "alias": "MEDIUM"}
+        ]
+      },
+      {
+        "id": 7, "type": "timeseries", "title": "Drift Detection Events",
+        "gridPos": {"x": 0, "y": 12, "w": 12, "h": 6},
+        "fieldConfig": {"defaults": {"unit": "none", "custom": {"lineWidth": 2, "fillOpacity": 15}}},
+        "targets": [
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "DriftDetected", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "3600", "refId": "A", "alias": "Detected"},
+          {"datasource": "cloudwatch", "namespace": "SecurePath", "metricName": "DriftRemediated", "dimensions": {"Project": "securepath"}, "statistics": ["Sum"], "period": "3600", "refId": "B", "alias": "Remediated"}
+        ]
+      },
+      {
+        "id": 8, "type": "text", "title": "Project Info",
+        "gridPos": {"x": 12, "y": 12, "w": 12, "h": 6},
+        "options": {"mode": "markdown", "content": "## SecurePath\n\n**CSPS:** 34.0/100\n\n**Architecture:** 5 security layers on AWS\n\n**Stack:** Terraform + Lambda + EventBridge + CloudTrail\n\n**Findings:** 12 total — 5 CRITICAL, 4 HIGH, 1 MEDIUM\n\n**Auto-remediation rate:** 25%\n\n[GitHub Repository](https://github.com/CorpodeanAndrei/securepath)"}
+      }
+    ],
+    "time": {"from": "now-24h", "to": "now"},
+    "schemaVersion": 38
+  },
+  "overwrite": true,
+  "folderId": 0
+}
