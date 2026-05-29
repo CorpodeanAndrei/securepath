@@ -1,5 +1,7 @@
 # SecurePath
 
+https://corpo.lat/aws-cloud-security-student-project/
+
 **Automated Cloud Security & Compliance System for AWS**
 
 Five security layers running continuously, all verified by Terraform IaC state.
